@@ -1,31 +1,22 @@
-use dotenv;
+use dotenv::dotenv;
+use axum::{
+    Server,
+    Router,
+    routing::get
+};
+// mod prisma;
 
-mod prisma;
-
-use prisma::post;
+// use prisma::post;
 
 #[tokio::main]
 async fn main() {
-    dotenv::dotenv().ok();
+    dotenv().ok();
 
-    let client = prisma::new_client().await.unwrap();
+    let app = Router::new()
+        .route("/", get(|| async { "Hello world!" }));
 
-    let post = client
-        .post()
-        .create(
-            post::title::set("First post".to_string()),
-            vec![],
-        )
-        .exec()
+    Server::bind(&"0.0.0.0:3000".parse().unwrap())
+        .serve(app.into_make_service())
         .await
         .unwrap();
-    println!("{:?}", post);
-
-    let posts = client
-        .post()
-        .find_many(vec![])
-        .exec()
-        .await
-        .unwrap();
-    println!("{:?}", posts);
 }
